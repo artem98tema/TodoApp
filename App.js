@@ -1,116 +1,113 @@
 import React ,{Component} from 'react';
-import {Text,View,TextInput,StyleSheet,Button,FlatList,TouchableOpacity} from 'react-native';
+import {Text,View,TextInput,StyleSheet,Button,FlatList,TouchableOpacity,Animated} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+
 export default class App extends Component {
 
   state={
-    text:'',
-    done:false,
-    list: [{todos:'1',index:0,isDone:false},{todos:'2',index:1,isDone:true},{todos:'3',index:2,isDone:false},]
-
+    text:'' ,
+    list: [],
+    count:0,
+    fadeAnim: new Animated.Value(0),
   };
 
 
+    componentDidMount = () => {
+    this.getData();
+    };
 
-  addItem = async ()=>{
-    let copyList = this.state.list;
-    let text = this.state.text;
-    copyList.push({todos:text,index:Math.random(),isDone:false});
+    addItem = (list,text) => {
+        let copyText = text;
+        let nestedCopyWithHack = JSON.parse(JSON.stringify(list));
+        nestedCopyWithHack.push({todos:copyText,index:this.state.count++,isDone:false});
+        this.setState({list:nestedCopyWithHack});
+        let jsonValue = JSON.stringify(nestedCopyWithHack);
+        AsyncStorage.setItem('saveList', jsonValue);
+        this.setState({text:""});
+    };
 
-    this.setState({list:copyList});
-    try {
-        const jsonValue = JSON.stringify(this.state.list);
-        await AsyncStorage.setItem('saveList', jsonValue);
-        console.log(jsonValue);
-    } catch (e) {
-        alert(e)
-    }
+  delete = (list, index ) => {
+      let nestedCopyWithHack = JSON.parse(JSON.stringify(list));
+      nestedCopyWithHack.splice(index,1);
+      this.setState({list:nestedCopyWithHack});
+      let jsonValue = JSON.stringify(nestedCopyWithHack);
+      AsyncStorage.setItem('saveList', jsonValue);
+      console.log(nestedCopyWithHack.length);
+  };
+
+  doneTask = (list,index) => {
+      let nestedCopyWithHack = JSON.parse(JSON.stringify(list));
+      nestedCopyWithHack[index].isDone = !nestedCopyWithHack[index].isDone;
+      this.setState({list:nestedCopyWithHack});
+      let jsonValue = JSON.stringify(nestedCopyWithHack);
+      AsyncStorage.setItem('saveList', jsonValue);
+
 
   };
 
+    getData = async () => {
+        try {
+            let jsonValue = await AsyncStorage.getItem('saveList');
+            let parseValue=  jsonValue != null ? JSON.parse(jsonValue) : [];
+            this.setState({list:parseValue});
+        } catch(e) {
+            alert(e);
+        }
+    };
 
-  delite = async (item,index)=>{
-        let copyList = this.state.list;
-        copyList.splice(index,1);
-        this.setState({list:copyList});
-      try {
-          const jsonValue = JSON.stringify(this.state.list);
-          await AsyncStorage.setItem('saveList', jsonValue);
-          console.log(jsonValue);
-      } catch (e) {
-          alert(e)
-      }
-  };
-  doneTask = async  (index)=>{
-      let copyList = this.state.list;
-      copyList[index].isDone = !copyList[index].isDone;
-      this.setState({list:copyList});
-      try {
-          const jsonValue = JSON.stringify(this.state.list);
-          await AsyncStorage.setItem('saveList', jsonValue);
-          console.log(jsonValue);
-      } catch (e) {
-          alert(e)
-      }
-      // alert(this.state.list[index].isDone);
-  };
+    handleChange=(text)=>{
+        this.setState({text});
+    };
 
-  componentDidMount= async ()=> {
-
-      try {
-          let {list} = this.state;
-          let jsonValue = await AsyncStorage.getItem('saveList');
-          let parsed = JSON.parse(jsonValue);
-          // alert(jsonValue);
-          this.setState({list:parsed});
-      } catch(e) {
-          alert(e);
-      }
-
-  };
 
     render(){
-  let {list} = this.state;
+  let {list,text} = this.state;
 
   return(
       <View style={styles.container}>
         <Text style={styles.header}>ToDo app</Text>
-        <View style={styles.input_view}>
-          <TextInput
-
-              onChangeText={(text)=>this.setState({text})}
-              value={this.state.value}
-              style={styles.input}/>
-        </View>
-        <View>
-          <FlatList data={list} renderItem={({item, index})=>{
-            return(
-                <View  style={styles.listbox}>
-                <TouchableOpacity key={index}  onPress={()=>this.doneTask(index)} style={styles.listbox_button}>
-                  <Text style={[item.isDone?styles.done_text:styles.undone_text,{width:'80%'}]}>{item.todos}</Text>
-                </TouchableOpacity>
-                    <Button  onPress={()=>this.delite(item,index)} title='Delete'/>
-                </View>
+        <View style={{height:"80%"}}>
+          <FlatList data={list}
+                    renderItem={({item, index})=>{
+                    return(
+                        <View key={index}  style={[styles.listbox]}>
+                            <TouchableOpacity key={index}
+                                      onPress={()=>{this.doneTask(list,index);
+                            }}        style={styles.listbox_button}>
+                            <Text style={[item.isDone?styles.done_text:styles.undone_text,{width:'80%'}]}>{item.todos}</Text>
+                            </TouchableOpacity>
+                            <Button  onPress={()=>this.delete(list,index)}
+                                     title='Delete'/>
+                        </View>
             )
-          }}/>
+                    }}/>
 
         </View>
-        <TouchableOpacity  onPress={this.addItem} style={styles.button} >
+        <TouchableOpacity  onPress={()=>{this.addItem(list,text)}}
+                           style={styles.button} >
           <Text style={styles.button_text}>+</Text>
         </TouchableOpacity>
+          <View style={styles.input_view}>
+              <TextInput
+
+                  onChangeText={this.handleChange}
+                  value={text}
+                  style={styles.input}/>
+          </View>
       </View>
   )
 }
 };
 const styles = StyleSheet.create({
     container: {
-        height:'100%'
+        height:'100%',
+        // backgroundColor:'grey'
     },
     input: {
         height:40,
         width:'100%',
         borderWidth:1,
-        borderColor:'black'
+        borderColor:'black',marginTop:0
     }
     ,
     input_view:{
@@ -131,10 +128,11 @@ const styles = StyleSheet.create({
         borderRadius:50,
         justifyContent:'center',
         alignItems:'center',
+
         position:'absolute',
-        right:20,
+        right:2,
         bottom:50,
-        color:'white'
+        color:'white',alignSelf:'flex-end',marginRight:20,
 },
     button_text:{
         color:'white',

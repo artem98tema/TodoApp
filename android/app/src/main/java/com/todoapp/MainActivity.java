@@ -1,7 +1,7 @@
 package com.todoapp;
-
-import com.facebook.react.ReactActivity;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
+import com.facebook.react.ReactActivity;
+
 public class MainActivity extends ReactActivity {
 
   /**
