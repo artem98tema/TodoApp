@@ -1,7 +1,7 @@
 import React,{Component} from 'react';
-import {View,Text,TextInput,TouchableOpacity,Image,KeyboardAvoidingView,StyleSheet,Animated} from "react-native";
+import {View,Text,TextInput,TouchableOpacity,Image,KeyboardAvoidingView,StyleSheet,Animated,Dimensions} from "react-native";
 import AsyncStorage from '@react-native-community/async-storage';
-
+const widthWindow = Dimensions.get('screen').width;
 export default class Welcome extends Component {
     state={
         name:null,
@@ -29,7 +29,7 @@ export default class Welcome extends Component {
     anim=()=>{
         const {animated} = this.state;
         Animated.timing(animated,{
-            toValue:0.5,duration:800
+            toValue:0.5,duration:900
         }).start()
     };
 
@@ -40,29 +40,42 @@ export default class Welcome extends Component {
         }).start()
     };
 
+    gotop=()=>{
+        const {animated} = this.state;
+    };
+
+    goBacks=()=>{
+
+    }
     render(){
         const {animated} = this.state;
         return(
             <KeyboardAvoidingView  behavior={Platform.OS == "ios" ? "padding" : "height"}
-                style={{flex:1,backgroundColor:'white',alignItems:'center',flexDirection:'column'}}>
+                style={{backgroundColor:'white',alignItems:'center',flexDirection:'column',height:'100%'}}>
 
-                <View style={{marginTop:100,flex:1,marginBottom:40}}>
-                    <Animated.Image style={[styles.trigerOff,{transform:[
-                            {
-                                scale:animated
-                            }
+                <Animated.View style={{paddingTop:"10%",paddingBottom:40,transform:[
+                        {
+                            scale:animated
+                        }
 
-                        ]}]} source={require("../img/undraw_just_saying.png")}/>
-                </View>
+                    ]}}>
+                    <Animated.Image style={[styles.trigerOff,]} source={require("../img/undraw_just_saying.png")}/>
+                </Animated.View>
 
 
-                <View style={{flex:2,width:'100%',justifyContent:'space-between',alignItems:'center'}}>
-                    <View style={{marginBottom:20,flex:1}}>
+                <Animated.View style={{width:'100%',backgroundColor:'white',alignItems:'center',height:'auto',transform: [{
+                        translateY: this.state.animated.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [-200, 1]
+                        })
+                    }]}}>
+                    <View style={{paddingBottom:50}}>
                         <Text style={{fontWeight:'bold',textAlign:'center',fontSize:35,marginBottom:5}}>Welcome</Text>
                         <Text style={{fontSize:20}}>Can you type your name for me?</Text>
                     </View>
 
-                    <View  style={{flex:2,width:'100%',paddingHorizontal:50,}}>
+                    <View >
+                        <View style={{paddingBottom:20,width:widthWindow,height:80,paddingLeft:40,paddingRight:40}}>
                         <TextInput placeholderTextfontWeight='bold'
                                 onFocus={()=>this.anim()}
                                 onBlur={()=>this.animBack()}
@@ -72,8 +85,8 @@ export default class Welcome extends Component {
                                placeholder='Your name ...'
                                    // onSubmitEditing={()=>this.onPress(this.state.name)}
                                    // onSubmit={()=>this.onPress(this.state.name)}
-                               style={{borderBottomWidth:1,borderColor:'#E4CCFC',color:'#E4CCFC',fontWeight:'bold',fontSize:15,marginBottom:30}}/>
-
+                               style={{borderBottomWidth:1,borderColor:'#E4CCFC',color:'#E4CCFC',fontWeight:'bold',fontSize:15,}}/>
+                        </View>
                         <TouchableOpacity
                             onPress={()=>this.onPress(this.state.name)}
                             // onPress={()=>this.anim()}
@@ -82,7 +95,7 @@ export default class Welcome extends Component {
                             <Text style={{color:'#7512D7',fontWeight:'bold'}}>Let's start</Text>
                         </TouchableOpacity>
                 </View>
-                </View>
+                </Animated.View>
 
 
             </KeyboardAvoidingView>

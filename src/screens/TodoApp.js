@@ -235,7 +235,8 @@ const styles = StyleSheet.create({
     container: {
         height:'100%',
         width:widthWindow,
-        backgroundColor:'white'
+        backgroundColor:'white',
+        paddingHorizontal:5
 
     },
     input: {
